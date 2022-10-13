@@ -4,8 +4,11 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,7 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
@@ -99,8 +102,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            ComposeTutorialTheme{
 //            MessageCard(SimpleMessage("Max Mayweather", "why not always something everywhere some of the time? And now the question, what happens with overflow..."))
-            Conversation(messages = SampleData.conversationSample)
+                Conversation(SampleData.conversationSample)
+            }
         }
     }
 }
@@ -122,38 +127,51 @@ fun Conversation(messages: List<SimpleMessage>){
 fun MessageCard(msg: SimpleMessage) {
 
     ComposeTutorialTheme{
-        Surface(modifier = Modifier.fillMaxSize()){
-            Row(
-                modifier = Modifier.padding(all = 8.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.profile_picture),
-                    contentDescription = "Contact profile picture",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+        Row(
+            modifier = Modifier.padding(all = 8.dp)
+        ) {
+            Image(
+                painter = painterResource(R.drawable.profile_picture),
+                contentDescription = "Contact profile picture",
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape),
 
-                    )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
 
-                Spacer(modifier = Modifier.width(8.dp))
 
-                Column {
+            var isExpanded by remember { mutableStateOf(false) }
+            //this variable is reassigned/ updated based on the isExpanded state? and the target
+            //Value (Color) is the Color the animation is animated towards
+            val surfaceColor by animateColorAsState(
+                if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+            )
+
+            Column (modifier = Modifier.clickable { isExpanded = !isExpanded }){
+                Text(
+                    text = msg.author,
+                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Surface(
+                    shape = CircleShape,
+                    shadowElevation = 1.5.dp,
+                    //assigning animated color?
+                    color = surfaceColor,
+                    //animating content size on surface
+                    modifier = Modifier.animateContentSize().padding(1.dp),
+
+                ) {
                     Text(
-                        text = msg.author,
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.titleSmall
+                        text = msg.body,
+                        modifier = Modifier.padding(all = 8.dp),
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 1,
+                        style = MaterialTheme.typography.bodyMedium
                     )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Surface(shape =  CircleShape, shadowElevation = 1.dp){
-                        Text(
-                            text = msg.body,
-                            modifier = Modifier.padding(all = 8.dp),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
                 }
             }
         }
