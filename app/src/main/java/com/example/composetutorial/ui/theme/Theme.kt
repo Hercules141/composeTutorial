@@ -63,6 +63,7 @@ fun ComposeTutorialTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = content,
+
     )
 }
